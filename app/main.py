@@ -32,33 +32,33 @@ def loadTaunts():
 
 #Loads configs from snake.ini file
 def loadConfig():
-	if not os.path.exists('app/snake.ini'):
-		debug("No config file, you should include that")
-		#if there's no config file, defaults just get used
-	else:
-		config = ConfigParser.ConfigParser()
-		config.read('app/snake.ini')
-		global CONST_FOOD_CLOSER_SHORTER
-		global CONST_FOOD_CLOSER_LONGER
-		global CONST_FOOD_FURTHER_SHORTER
-		global CONST_FOOD_FURTHER_LONGER
-		global CONST_FOOD_DIST_MODIFIER
+    if not os.path.exists('app/snake.ini'):
+        debug("No config file, you should include that")
+        #if there's no config file, defaults just get used
+    else:
+        config = ConfigParser.ConfigParser()
+        config.read('app/snake.ini')
+        global CONST_FOOD_CLOSER_SHORTER
+        global CONST_FOOD_CLOSER_LONGER
+        global CONST_FOOD_FURTHER_SHORTER
+        global CONST_FOOD_FURTHER_LONGER
+        global CONST_FOOD_DIST_MODIFIER
         global CONST_HUNGER_WEIGHT_MODIFIER
         
-		CONST_FOOD_CLOSER_SHORTER = config.getint('FOODWEIGHT', 'CloserAndShorter')
-		CONST_FOOD_CLOSER_LONGER = config.getint('FOODWEIGHT', 'CloserAndLonger')
-		CONST_FOOD_FURTHER_SHORTER = config.getint('FOODWEIGHT', 'FurtherAndShorter')
-		CONST_FOOD_FURTHER_LONGER = config.getint('FOODWEIGHT', 'FurtherAndLonger')
-		CONST_FOOD_DIST_MODIFIER = config.getint('FOODWEIGHT', 'DistanceModifier')
+        CONST_FOOD_CLOSER_SHORTER = config.getint('FOODWEIGHT', 'CloserAndShorter')
+        CONST_FOOD_CLOSER_LONGER = config.getint('FOODWEIGHT', 'CloserAndLonger')
+        CONST_FOOD_FURTHER_SHORTER = config.getint('FOODWEIGHT', 'FurtherAndShorter')
+        CONST_FOOD_FURTHER_LONGER = config.getint('FOODWEIGHT', 'FurtherAndLonger')
+        CONST_FOOD_DIST_MODIFIER = config.getint('FOODWEIGHT', 'DistanceModifier')
         CONST_HUNGER_WEIGHT_MODIFIER = config.getint('FOODWEIGHT','HungerWeightModifier')
         
-		debug('Read the following configs: ')
-		debug('CONST_FOOD_CLOSER_SHORTER:  {}'.format(CONST_FOOD_CLOSER_SHORTER))
-		debug('CONST_FOOD_CLOSER_LONGER:   {}'.format(CONST_FOOD_CLOSER_LONGER))
-		debug('CONST_FOOD_FURTHER_SHORTER: {}'.format(CONST_FOOD_FURTHER_SHORTER))
-		debug('CONST_FOOD_FURTHER_LONGER:  {}'.format(CONST_FOOD_FURTHER_LONGER))
-		debug('CONST_FOOD_DIST_MODIFIER:   {}'.format(CONST_FOOD_DIST_MODIFIER))
-		debug('CONST_FOOD_FURTHER_LONGER:  {}'.format(CONST_HUNGER_WEIGHT_MODIFIER))
+        debug('Read the following configs: ')
+        debug('CONST_FOOD_CLOSER_SHORTER:  {}'.format(CONST_FOOD_CLOSER_SHORTER))
+        debug('CONST_FOOD_CLOSER_LONGER:   {}'.format(CONST_FOOD_CLOSER_LONGER))
+        debug('CONST_FOOD_FURTHER_SHORTER: {}'.format(CONST_FOOD_FURTHER_SHORTER))
+        debug('CONST_FOOD_FURTHER_LONGER:  {}'.format(CONST_FOOD_FURTHER_LONGER))
+        debug('CONST_FOOD_DIST_MODIFIER:   {}'.format(CONST_FOOD_DIST_MODIFIER))
+        debug('CONST_FOOD_FURTHER_LONGER:  {}'.format(CONST_HUNGER_WEIGHT_MODIFIER))
 
 def debug(msg):
     if DEBUG:
