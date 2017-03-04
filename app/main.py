@@ -42,7 +42,7 @@ def loadConfig():
 		global CONST_FOOD_FURTHER_SHORTER
 		global CONST_FOOD_FURTHER_LONGER
 		global CONST_FOOD_DIST_MODIFIER
-		
+
 		CONST_FOOD_CLOSER_SHORTER = config.getint('FOODWEIGHT', 'CloserAndShorter')
 		CONST_FOOD_CLOSER_LONGER = config.getint('FOODWEIGHT', 'CloserAndLonger')
 		CONST_FOOD_FURTHER_SHORTER = config.getint('FOODWEIGHT', 'FurtherAndShorter')
@@ -91,10 +91,10 @@ def start():
 @bottle.post('/move')
 def move():
     data = bottle.request.json
-    
+
     snakes = data['snakes']
     me = next(x for x in snakes if x['id'] == data['you'])
-    
+
     candidates = safe_moves(data)
 
     debug("Valid moves are "+str(candidates))
@@ -106,22 +106,9 @@ def move():
             'taunt': 'oops.'
         }
 
-    food = food_list(data)
-    if not len(food) is 0: 
-        food_target = food[0]
-        for f in food:
-            if f[1] > food_target[1]:
-                food_target = f
-        food_moves = move_toward(me['coords'][0], food_target[0])
-        moves = [ x for x in food_moves if x in candidates ]
-    
-    if moves is None or len(moves) is 0:
-        debug("Found no good food moves, using all candidates")
-        moves = candidates
-        
     debug("Found potentially good moves (need to test for traps): "+str(moves))
     # Test the moves for traps
-    moves_tested = list(moves)
+    moves_tested = list(candidates)
     for m in moves:
         debug("Testing "+str(m))
         new_snake = apply_move(me, m)
@@ -136,7 +123,26 @@ def move():
         if len(new_moves_tested) is 0:
             debug("Rejecting move "+str(m)+", next gen space fill fails")
             moves_tested.remove(m)
-    move = random.choice(moves_tested)
+
+	##move = random.choice(moves_tested)
+
+    food = food_list(data)
+    if not len(food) is 0:
+        food_target = food[0]
+        for f in food:
+            if f[1] > food_target[1]:
+                food_target = f
+        possible_food_moves = move_toward(me['coords'][0], food_target[0])
+        safe_food_moves = [ x for x in possible_food_moves if x in candidates ]
+
+    if safe_food_moves is None or len(safe_food_moves) is 0:
+        moves = moves_tested
+    else:
+        moves = safe_food_moves
+
+    if moves is None or len(moves) is 0:
+        debug("Found no good food moves, using all candidates")
+        moves = candidates
 
     print "Was going "+str(direction(me))+", moving "+str(move)
 
@@ -146,7 +152,7 @@ def move():
     }
 
 # Prioritize food by distance and other snakes
-# Returns weighted list of food (more positive weights are better, 
+# Returns weighted list of food (more positive weights are better,
 # more negative weights are more dangerous/worse)
 def food_list(data):
     me = next(x for x in data['snakes'] if x['id'] == data['you'])
@@ -225,7 +231,7 @@ def space_size(data, space):
     for x in data['snakes']:
         for y in x['coords']:
             edges.append(y)
-    
+
     me = next(x for x in data['snakes'] if x['id'] == data['you'])
     our_len = len(me['coords']) + 2
     count = 0
@@ -254,7 +260,7 @@ def space_size(data, space):
         explore = new_explore
     debug("Found "+str(count)+" tiles free after flood fill")
     return count
-    
+
 
 
 # Find moves which are safe (i.e. do not kill us immediately)
@@ -308,7 +314,7 @@ def safe_moves(data, new_snake=None):
         moves.remove('right')
 
     return moves
-    
+
 def safe_moves_collide(n_head, me, others):
     body = me['coords'][1:]
     if n_head in body:
@@ -348,7 +354,7 @@ def inv_dir(direction):
         return 'right'
     if direction is 'right':
         return 'left'
-		
+
 # Expose WSGI app (so gunicorn can find it)
 application = bottle.default_app()
 if __name__ == '__main__':
@@ -356,4 +362,3 @@ if __name__ == '__main__':
         print "Enabled debugging messages"
         DEBUG = True
     bottle.run(application, host=os.getenv('IP', '0.0.0.0'), port=os.getenv('PORT', '8080'))
-
