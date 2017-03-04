@@ -100,7 +100,7 @@ def move():
     debug("Valid moves are "+str(candidates))
 
     if len(candidates) is 0:
-        print "No valid moves, suiciding"
+        debug("No valid moves, suiciding")
         return {
             'move': inv_dir(direction(me)),
             'taunt': 'oops.'
@@ -146,7 +146,7 @@ def move():
 
     move = random.choice(moves)
 
-    print "Was going "+str(direction(me))+", moving "+str(move)
+    debug("Was going "+str(direction(me))+", moving "+str(move))
 
     return {
         'move': move,
