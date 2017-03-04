@@ -55,7 +55,19 @@ def move():
             'taunt': 'oops.'
         }
 
-    move = random.choice(candidates)
+    food = food_list(data)
+    if not len(food) is 0: 
+        food_target = food[0]
+        for f in food:
+            if f[1] > food_target[1]:
+                food_target = f
+        food_moves = move_toward(me['coords'][0], food_target[0])
+        moves = [ x for x in food_moves if x in candidates ]
+    
+    if moves is None or len(moves) is 0:
+        move = random.choice(candidates)
+    else:
+        move = random.choice(moves)
 
     print "Was going "+str(direction(me))+", moving "+str(move)
 
@@ -63,6 +75,58 @@ def move():
         'move': move,
         'taunt': 'I have no idea where I\'m going!'
     }
+
+# Prioritize food by distance and other snakes
+# Returns weighted list of food (more positive weights are better, 
+# more negative weights are more dangerous/worse)
+def food_list(data):
+    me = next(x for x in data['snakes'] if x['id'] == data['you'])
+    others = [x for x in data['snakes'] if not x['id'] == data['you']]
+    food = [ [x,0] for x in data['food'] ]
+    for x in food:
+        our_dist = dist(x[0], me['coords'][0])
+        x[1] = data['width'] - our_dist
+        for snake in others:
+            their_dist = dist(x[0], snake['coords'][0])
+            if our_dist < their_dist:
+                # Add weight
+                if len(snake['coords']) > len(me['coords']) - 1:
+                    x[1] += 5 # They are longer
+                else:
+                    x[1] += 10 # We are longer
+            else:
+                # Subtract weight
+                if len(snake['coords']) > len(me['coords']) - 1:
+                    x[1] -= 10 # They are longer
+                else:
+                    x[1] -= 2 # We are longer
+    return food
+    
+# Returns a list of possible (maybe unsafe) moves which will advance point A to B
+def move_toward(A, B):
+    x = A[0] - B[0]
+    y = A[1] - B[1]
+    moves = []
+    if x < 0:
+        moves.append('right')
+    if x > 0:
+        moves.append('left')
+    if y < 0:
+        moves.append('down')
+    if y > 0:
+        moves.append('up')
+    return moves
+
+# Returns the number of moves between two points
+def dist(point1, point2):
+    x = point1[0] - point2[0]
+    y = point1[1] - point2[1]
+    if x < 0:
+        x *= -1
+    if y < 0:
+        y *= -1
+    return x+y
+
 
 # Find moves which are safe (i.e. do not kill us immediately)
 def safe_moves(data):
