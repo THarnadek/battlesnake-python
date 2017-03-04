@@ -77,10 +77,10 @@ def start():
 #        bottle.request.urlparts.netloc
 #    )
     head_url = 'http://cultofthepartyparrot.com/parrots/hd/parrot.gif'
-	
+
     loadConfig()
     loadTaunts()
-	
+
     return {
         'color': '#00FF00',
         'taunt': '{} ({}x{})'.format(game_id, board_width, board_height),
@@ -106,7 +106,7 @@ def move():
             'taunt': 'oops.'
         }
 
-    debug("Found potentially good moves (need to test for traps): "+str(moves))
+    debug("Found potentially good moves (need to test for traps): "+str(candidates))
     # Test the moves for traps
     moves_tested = list(candidates)
     for m in moves:
@@ -123,8 +123,6 @@ def move():
         if len(new_moves_tested) is 0:
             debug("Rejecting move "+str(m)+", next gen space fill fails")
             moves_tested.remove(m)
-
-	##move = random.choice(moves_tested)
 
     food = food_list(data)
     if not len(food) is 0:
@@ -143,6 +141,8 @@ def move():
     if moves is None or len(moves) is 0:
         debug("Found no good food moves, using all candidates")
         moves = candidates
+
+    move = random.choice(moves)
 
     print "Was going "+str(direction(me))+", moving "+str(move)
 
