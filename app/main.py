@@ -44,14 +44,14 @@ def loadConfig():
         global CONST_FOOD_FURTHER_LONGER
         global CONST_FOOD_DIST_MODIFIER
         global CONST_HUNGER_WEIGHT_MODIFIER
-        
+
         CONST_FOOD_CLOSER_SHORTER = config.getint('FOODWEIGHT', 'CloserAndShorter')
         CONST_FOOD_CLOSER_LONGER = config.getint('FOODWEIGHT', 'CloserAndLonger')
         CONST_FOOD_FURTHER_SHORTER = config.getint('FOODWEIGHT', 'FurtherAndShorter')
         CONST_FOOD_FURTHER_LONGER = config.getint('FOODWEIGHT', 'FurtherAndLonger')
         CONST_FOOD_DIST_MODIFIER = config.getint('FOODWEIGHT', 'DistanceModifier')
         CONST_HUNGER_WEIGHT_MODIFIER = config.getint('FOODWEIGHT','HungerWeightModifier')
-        
+
         debug('Read the following configs: ')
         debug('CONST_FOOD_CLOSER_SHORTER:  {}'.format(CONST_FOOD_CLOSER_SHORTER))
         debug('CONST_FOOD_CLOSER_LONGER:   {}'.format(CONST_FOOD_CLOSER_LONGER))
@@ -130,13 +130,13 @@ def move():
             debug("Rejecting move "+str(m)+", next gen space fill fails")
             moves_tested.remove(m)
 
-    
+
     moves = hunger_move(data, moves_tested)
 
     if moves is None or len(moves) is 0:
         debug("Found no good moves, using all candidates")
         moves = candidates
-        
+
     move = random.choice(moves)
 
     debug("Was going "+str(direction(me))+", moving "+str(move))
@@ -148,7 +148,7 @@ def move():
 
 # Return our best move for eating
 def hunger_move(data, moves_tested):
-    me = next(x for x in snakes if x['id'] == data['you'])
+    me = next(x for x in data['snakes'] if x['id'] == data['you'])
     food = food_list(data)
     if not len(food) is 0:
         food_target = food[0]
