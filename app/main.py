@@ -14,6 +14,10 @@ CONST_FOOD_FURTHER_SHORTER = 10
 CONST_FOOD_FURTHER_LONGER = 2
 CONST_FOOD_DIST_MODIFIER = 0
 CONST_HUNGER_WEIGHT_MODIFIER = 10
+CONST_AGRESSION = 1
+CONST_FEAR = 1
+CONST_FEAR_DIST = 5
+CONST_BLOODLUST_DIST = 5
 
 # use this to taunt people randomly
 #random.choice(taunts)
@@ -162,9 +166,50 @@ def hunger_move(data, moves_tested):
         moves = safe_food_moves
     return random.choice(moves)
 
+# Return our best move for hunting
+def bloodlust_move(data, moves_tested):
+    return random.choice(moves_tested)
+
+# Return our best move for running
+def fear_move(data, moves_tested):
+    return random.choice(moves_tested)
+
+# Weight of 10 (0 is full, 10 is starving)
 def hunger_weight(data):
     me = next(x for x in snakes if x['id'] == data['you'])
     return (100 - me['health'])/CONST_HUNGER_WEIGHT_MODIFIER
+
+# Weight of 10 (0 is no bloodlust, 10 is pure bloodlust)
+def bloodlust_weight(data):
+    me = next(x for x in snakes if x['id'] == data['you'])
+    others = [x for x in data['snakes'] if not x['id'] == data['you']]
+    # nearest snake (within 5)
+    # smaller than us: distance, plus they are smaller
+    close_snakes = [x for x in others if dist(me['coords'][0], x['coords'][0]) <= CONST_BLOODLUST_DIST and len(me['coords']) > len(x['coords'])]
+    if len(close_snakes) is 0:
+        return 0
+    weighted_close_snakes = [[x,len(x['coords'])] for x in others]
+    candidate = weighted_close_snakes[0]
+    for x in weighted_close_snakes:
+        if x[1] < candidate[1]:
+            candidate = x
+    return (10 - candidate[1])*CONST_AGRESSION
+
+# Weight of 10 (0 is fearless, 10 us terrified)
+def fear_weight(data):
+    me = next(x for x in snakes if x['id'] == data['you'])
+    others = [x for x in data['snakes'] if not x['id'] == data['you']]
+    # nearest snake (within 5)
+    # smaller than us: distance, plus if they are bigger
+    close_snakes = [x for x in others if dist(me['coords'][0], x['coords'][0]) <= CONST_FEAR_DIST and len(me['coords']) < len(x['coords'])]
+    if len(close_snakes) is 0:
+        return 0
+    weighted_close_snakes = [[x,len(x['coords'])] for x in others]
+    candidate = weighted_close_snakes[0]
+    for x in weighted_close_snakes:
+        if x[1] < candidate[1]:
+            candidate = x
+    return (10 - candidate[1])*CONST_FEAR
 
 # Prioritize food by distance and other snakes
 # Returns weighted list of food (more positive weights are better,
