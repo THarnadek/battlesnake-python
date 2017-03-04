@@ -76,7 +76,7 @@ def start():
 #        bottle.request.urlparts.scheme,
 #        bottle.request.urlparts.netloc
 #    )
-	head_url = 'http://cultofthepartyparrot.com/parrots/hd/parrot.gif'
+    head_url = 'http://cultofthepartyparrot.com/parrots/hd/parrot.gif'
 	
     loadConfig()
     loadTaunts()
