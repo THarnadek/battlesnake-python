@@ -126,19 +126,7 @@ def move():
             debug("Rejecting move "+str(m)+", next gen space fill fails")
             moves_tested.remove(m)
 
-    food = food_list(data)
-    if not len(food) is 0:
-        food_target = food[0]
-        for f in food:
-            if f[1] > food_target[1]:
-                food_target = f
-        possible_food_moves = move_toward(me['coords'][0], food_target[0])
-        safe_food_moves = [ x for x in possible_food_moves if x in moves_tested ]
 
-    if safe_food_moves is None or len(safe_food_moves) is 0:
-        moves = moves_tested
-    else:
-        moves = safe_food_moves
 
     if moves is None or len(moves) is 0:
         debug("Found no good food moves, using all candidates")
@@ -152,6 +140,24 @@ def move():
         'move': move,
         'taunt': 'I have no idea where I\'m going!'
     }
+
+# Return our best move for eating
+def hunger_move(data, moves_tested):
+    me = next(x for x in snakes if x['id'] == data['you'])
+    food = food_list(data)
+    if not len(food) is 0:
+        food_target = food[0]
+        for f in food:
+            if f[1] > food_target[1]:
+                food_target = f
+        possible_food_moves = move_toward(me['coords'][0], food_target[0])
+        safe_food_moves = [ x for x in possible_food_moves if x in moves_tested ]
+
+    if safe_food_moves is None or len(safe_food_moves) is 0:
+        moves = moves_tested
+    else:
+        moves = safe_food_moves
+    return random.choice(moves)
 
 # Prioritize food by distance and other snakes
 # Returns weighted list of food (more positive weights are better,
