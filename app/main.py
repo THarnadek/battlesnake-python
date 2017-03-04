@@ -131,13 +131,11 @@ def move():
             moves_tested.remove(m)
 
 
-    moves = hunger_move(data, moves_tested)
+    move = hunger_move(data, moves_tested)
 
-    if moves is None or len(moves) is 0:
-        debug("Found no good moves, using all candidates")
-        moves = candidates
-
-    move = random.choice(moves)
+    if move is None:
+        debug("Found no good move, using all candidates")
+        move = random.choice(candidates)
 
     debug("Was going "+str(direction(me))+", moving "+str(move))
 
