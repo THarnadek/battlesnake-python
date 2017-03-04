@@ -5,6 +5,11 @@ import sys
 
 directions = ['up', 'down', 'left', 'right']
 
+# use this to taunt people randomly
+taunts = [line.strip() for line in open("taunts.txt", 'r')]
+print(random.choice(taunts))
+
+
 DEBUG = False
 
 def debug(msg):
