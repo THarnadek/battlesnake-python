@@ -133,7 +133,7 @@ def move():
             if f[1] > food_target[1]:
                 food_target = f
         possible_food_moves = move_toward(me['coords'][0], food_target[0])
-        safe_food_moves = [ x for x in possible_food_moves if x in candidates ]
+        safe_food_moves = [ x for x in possible_food_moves if x in moves_tested ]
 
     if safe_food_moves is None or len(safe_food_moves) is 0:
         moves = moves_tested
