@@ -25,13 +25,13 @@ def loadTaunts():
 		debug("No taunts file, you should include that")
 	else:
 		global taunts
-		taunts = [line.strip() for line in open('taunts.txt', 'r')]
+		taunts = [line.strip() for line in open('app/taunts.txt', 'r')]
 		debug('Read the following taunts: ')
 		debug(taunts)
 
 #Loads configs from snake.ini file
 def loadConfig():
-	if not os.path.exists('snake.ini'):
+	if not os.path.exists('app/snake.ini'):
 		debug("No config file, you should include that")
 		#if there's no config file, defaults just get used
 	else:
