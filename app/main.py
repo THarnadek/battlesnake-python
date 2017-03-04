@@ -21,7 +21,7 @@ DEBUG = True
 
 #Loads strings from taunts.txt
 def loadTaunts():
-	if not os.path.exists('taunts.txt'):
+	if not os.path.exists('app/taunts.txt'):
 		debug("No taunts file, you should include that")
 	else:
 		global taunts
@@ -36,7 +36,7 @@ def loadConfig():
 		#if there's no config file, defaults just get used
 	else:
 		config = ConfigParser.ConfigParser()
-		config.read('snake.ini')
+		config.read('app/snake.ini')
 		global CONST_FOOD_CLOSER_SHORTER
 		global CONST_FOOD_CLOSER_LONGER
 		global CONST_FOOD_FURTHER_SHORTER
@@ -76,9 +76,10 @@ def start():
         bottle.request.urlparts.scheme,
         bottle.request.urlparts.netloc
     )
-
-    # TODO: Do things with data
-
+	
+    loadConfig()
+    loadTaunts()
+	
     return {
         'color': '#00FF00',
         'taunt': '{} ({}x{})'.format(game_id, board_width, board_height),
@@ -347,10 +348,6 @@ def inv_dir(direction):
     if direction is 'right':
         return 'left'
 		
-#Load from files
-loadConfig()
-loadTaunts()
-
 # Expose WSGI app (so gunicorn can find it)
 application = bottle.default_app()
 if __name__ == '__main__':
