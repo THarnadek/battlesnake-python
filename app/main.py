@@ -2,15 +2,58 @@ import bottle
 import os
 import random
 import sys
+import ConfigParser
 
 directions = ['up', 'down', 'left', 'right']
+#placeholder constants
+taunts = ['I\m mute', 'I have nothing to say']
+CONST_FOOD_CLOSER_SHORTER = 5
+CONST_FOOD_CLOSER_LONGER = 10
+CONST_FOOD_FURTHER_SHORTER = 10
+CONST_FOOD_FURTHER_LONGER = 2
+CONST_FOOD_DIST_MODIFIER = 0
 
 # use this to taunt people randomly
-taunts = [line.strip() for line in open("taunts.txt", 'r')]
-print(random.choice(taunts))
+#random.choice(taunts)
 
+DEBUG = True
 
-DEBUG = False
+#Loads strings from taunts.txt
+def loadTaunts():
+	if not os.path.exists('taunts.txt'):
+		debug("No taunts file, you should include that")
+	else:
+		global taunts
+		taunts = [line.strip() for line in open('taunts.txt', 'r')]
+		debug('Read the following taunts: ')
+		debug(taunts)
+
+#Loads configs from snake.ini file
+def loadConfig():
+	if not os.path.exists('snake.ini'):
+		debug("No config file, you should include that")
+		#if there's no config file, defaults just get used
+	else:
+		config = ConfigParser.ConfigParser()
+		config.read('snake.ini')
+		global CONST_FOOD_CLOSER_SHORTER
+		global CONST_FOOD_CLOSER_LONGER
+		global CONST_FOOD_FURTHER_SHORTER
+		global CONST_FOOD_FURTHER_LONGER
+		global CONST_FOOD_DIST_MODIFIER
+		
+		CONST_FOOD_CLOSER_SHORTER = config.getint('FOODWEIGHT', 'CloserAndShorter')
+		CONST_FOOD_CLOSER_LONGER = config.getint('FOODWEIGHT', 'CloserAndLonger')
+		CONST_FOOD_FURTHER_SHORTER = config.getint('FOODWEIGHT', 'FurtherAndShorter')
+		CONST_FOOD_FURTHER_LONGER = config.getint('FOODWEIGHT', 'FurtherAndLonger')
+		CONST_FOOD_DIST_MODIFIER = config.getint('FOODWEIGHT', 'DistanceModifier')
+
+		debug('Read the following configs: ')
+		debug('CONST_FOOD_CLOSER_SHORTER:  {}'.format(CONST_FOOD_CLOSER_SHORTER))
+		debug('CONST_FOOD_CLOSER_LONGER:   {}'.format(CONST_FOOD_CLOSER_LONGER))
+		debug('CONST_FOOD_FURTHER_SHORTER: {}'.format(CONST_FOOD_FURTHER_SHORTER))
+		debug('CONST_FOOD_FURTHER_LONGER:  {}'.format(CONST_FOOD_FURTHER_LONGER))
+		debug('CONST_FOOD_FURTHER_LONGER:  {}'.format(CONST_FOOD_DIST_MODIFIER))
 
 def debug(msg):
     if DEBUG:
@@ -90,21 +133,21 @@ def food_list(data):
     food = [ [x,0] for x in data['food'] ]
     for x in food:
         our_dist = dist(x[0], me['coords'][0])
-        x[1] = data['width'] - our_dist
+        x[1] = data['width'] - our_dist + CONST_FOOD_DIST_MODIFIER
         for snake in others:
             their_dist = dist(x[0], snake['coords'][0])
             if our_dist < their_dist:
                 # Add weight
                 if len(snake['coords']) > len(me['coords']) - 1:
-                    x[1] += 5 # They are longer
+                    x[1] += CONST_FOOD_CLOSER_SHORTER # They are longer
                 else:
-                    x[1] += 10 # We are longer
+                    x[1] += CONST_FOOD_CLOSER_LONGER # We are longer
             else:
                 # Subtract weight
                 if len(snake['coords']) > len(me['coords']) - 1:
-                    x[1] -= 10 # They are longer
+                    x[1] -= CONST_FOOD_FURTHER_SHORTER # They are longer
                 else:
-                    x[1] -= 2 # We are longer
+                    x[1] -= CONST_FOOD_CLOSER_LONGER # We are longer
     return food
     
 # Returns a list of possible (maybe unsafe) moves which will advance point A to B
@@ -219,6 +262,10 @@ def inv_dir(direction):
         return 'right'
     if direction is 'right':
         return 'left'
+		
+#Load from files
+loadConfig()
+loadTaunts()
 
 # Expose WSGI app (so gunicorn can find it)
 application = bottle.default_app()
@@ -227,3 +274,4 @@ if __name__ == '__main__':
         print "Enabled debugging messages"
         DEBUG = True
     bottle.run(application, host=os.getenv('IP', '0.0.0.0'), port=os.getenv('PORT', '8080'))
+
