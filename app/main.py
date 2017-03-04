@@ -3,6 +3,7 @@ import os
 import random
 import sys
 import ConfigParser
+import copy
 
 directions = ['up', 'down', 'left', 'right']
 #placeholder constants
@@ -113,9 +114,27 @@ def move():
         moves = [ x for x in food_moves if x in candidates ]
     
     if moves is None or len(moves) is 0:
-        move = random.choice(candidates)
-    else:
-        move = random.choice(moves)
+        debug("Found no good food moves, using all candidates")
+        moves = candidates
+        
+    debug("Found potentially good moves (need to test for traps): "+str(moves))
+    # Test the moves for traps
+    moves_tested = list(moves)
+    for m in moves:
+        debug("Testing "+str(m))
+        new_snake = apply_move(me, m)
+        new_moves = safe_moves(data, new_snake)
+        debug("Going to fill test: "+str(new_moves))
+        new_moves_tested = list(new_moves)
+        for n in new_moves:
+            temp = space_size(data, apply_move(new_snake, n)['coords'][0])
+            if space_size(data, apply_move(new_snake, n)['coords'][0]) <= len(me['coords']):
+                debug("Fill test failed for potential next move "+n)
+                new_moves_tested.remove(n)
+        if len(new_moves_tested) is 0:
+            debug("Rejecting move "+str(m)+", next gen space fill fails")
+            moves_tested.remove(m)
+    move = random.choice(moves_tested)
 
     print "Was going "+str(direction(me))+", moving "+str(move)
 
@@ -149,7 +168,24 @@ def food_list(data):
                 else:
                     x[1] -= CONST_FOOD_CLOSER_LONGER # We are longer
     return food
-    
+
+# Returns the snake with a move applied
+def apply_move(snake, move):
+    new_head = list(snake['coords'][0])
+    if move is 'up':
+        new_head[1] -= 1
+    elif move is 'down':
+        new_head[1] += 1
+    elif move is 'left':
+        new_head[0] -= 1
+    elif move is 'right':
+        new_head[0] += 1
+    result = copy.deepcopy(snake)
+    result['coords'] = [new_head]
+    for x in snake['coords'][:-1]:
+        result['coords'].append(x)
+    return result
+
 # Returns a list of possible (maybe unsafe) moves which will advance point A to B
 def move_toward(A, B):
     x = A[0] - B[0]
@@ -175,19 +211,63 @@ def dist(point1, point2):
         y *= -1
     return x+y
 
+# Use flood filling to determine the size of a region
+def space_size(data, space):
+    edges = []
+    for x in range(-1,data['width']):
+        edges.append([x,-2])
+        edges.append([x,data['height']])
+    for x in range(0,data['height']-1):
+        edges.append([-1,x])
+        edges.append([data['width'],x])
+    for x in data['snakes']:
+        for y in x['coords']:
+            edges.append(y)
+    
+    me = next(x for x in data['snakes'] if x['id'] == data['you'])
+    our_len = len(me['coords']) + 2
+    count = 0
+    explore = [space]
+    edges.append(space)
+    count += 1
+    while not len(explore) is 0 and len(explore) < our_len:
+        new_explore = []
+        for x in explore:
+            if not [x[0]+1, x[1]] in edges:
+                new_explore.append([x[0]+1, x[1]])
+                edges.append([x[0]+1, x[1]])
+                count += 1
+            if not [x[0]-1, x[1]] in edges:
+                new_explore.append([x[0]-1, x[1]])
+                edges.append([x[0]-1, x[1]])
+                count += 1
+            if not [x[0], x[1]+1] in edges:
+                new_explore.append([x[0], x[1]+1])
+                edges.append([x[0], x[1]+1])
+                count += 1
+            if not [x[0], x[1]-1] in edges:
+                new_explore.append([x[0], x[1]-1])
+                edges.append([x[0], x[1]-1])
+                count += 1
+        explore = new_explore
+    debug("Found "+str(count)+" tiles free after flood fill")
+    return count
+    
+
 
 # Find moves which are safe (i.e. do not kill us immediately)
-def safe_moves(data):
+def safe_moves(data, new_snake=None):
     width = data['width']
     height = data['height']
     snakes = data['snakes']
     me = next(x for x in snakes if x['id'] == data['you'])
+    if not new_snake is None:
+        debug("Using new_snake for collision check")
+        me = new_snake
     others = [x for x in snakes if not x['id'] == data['you']]
     head = me['coords'][0]
-    
-    moves = ['up', 'down', 'left', 'right']
 
-    debug("Checking up for collisions")
+    moves = ['up', 'down', 'left', 'right']
 
     n_head = list(head)
     n_head[1] -= 1
@@ -195,6 +275,7 @@ def safe_moves(data):
         debug("up collides with wall")
         moves.remove('up')
     elif safe_moves_collide(n_head, me, others):
+        debug("up collides with snake")
         moves.remove('up')
 
     n_head = list(head)
@@ -203,6 +284,7 @@ def safe_moves(data):
         debug("down collides with wall")
         moves.remove('down')
     elif safe_moves_collide(n_head, me, others):
+        debug("down collides with snake")
         moves.remove('down')
 
     n_head = list(head)
@@ -211,6 +293,7 @@ def safe_moves(data):
         debug("left collides with wall")
         moves.remove('left')
     elif safe_moves_collide(n_head, me, others):
+        debug("left collides with snake")
         moves.remove('left')
 
     n_head = list(head)
@@ -219,6 +302,7 @@ def safe_moves(data):
         debug("right collides with wall")
         moves.remove('right')
     elif safe_moves_collide(n_head, me, others):
+        debug("right collides with snake")
         moves.remove('right')
 
     return moves
