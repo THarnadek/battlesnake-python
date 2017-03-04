@@ -72,10 +72,11 @@ def start():
     board_width = data['width']
     board_height = data['height']
 
-    head_url = '%s://%s/static/head.png' % (
-        bottle.request.urlparts.scheme,
-        bottle.request.urlparts.netloc
-    )
+#    head_url = '%s://%s/static/head.png' % (
+#        bottle.request.urlparts.scheme,
+#        bottle.request.urlparts.netloc
+#    )
+	head_url = 'http://cultofthepartyparrot.com/parrots/hd/parrot.gif'
 	
     loadConfig()
     loadTaunts()
@@ -84,7 +85,7 @@ def start():
         'color': '#00FF00',
         'taunt': '{} ({}x{})'.format(game_id, board_width, board_height),
         'head_url': head_url,
-        'name': 'battlesnake-python'
+        'name': 'PartyParrot-Snek'
     }
 
 @bottle.post('/move')
