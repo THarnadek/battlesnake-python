@@ -13,6 +13,7 @@ CONST_FOOD_CLOSER_LONGER = 10
 CONST_FOOD_FURTHER_SHORTER = 10
 CONST_FOOD_FURTHER_LONGER = 2
 CONST_FOOD_DIST_MODIFIER = 0
+CONST_HUNGER_WEIGHT_MODIFIER = 10
 
 # use this to taunt people randomly
 #random.choice(taunts)
@@ -158,6 +159,10 @@ def hunger_move(data, moves_tested):
     else:
         moves = safe_food_moves
     return random.choice(moves)
+
+def hunger_weight(data):
+    me = next(x for x in snakes if x['id'] == data['you'])
+    return (100 - me['health'])/CONST_HUNGER_WEIGHT_MODIFIER
 
 # Prioritize food by distance and other snakes
 # Returns weighted list of food (more positive weights are better,
