@@ -105,8 +105,10 @@ def move():
             'move': inv_dir(direction(me)),
             'taunt': 'oops.'
         }
+    else:
+        moves = candidates
 
-    debug("Found potentially good moves (need to test for traps): "+str(candidates))
+    debug("Found potentially good moves (need to test for traps): "+str(moves))
     # Test the moves for traps
     moves_tested = list(candidates)
     for m in moves:
