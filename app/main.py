@@ -18,7 +18,7 @@ CONST_HUNGER_WEIGHT_MODIFIER = 10
 # use this to taunt people randomly
 #random.choice(taunts)
 
-DEBUG = False
+DEBUG = True
 
 #Loads strings from taunts.txt
 def loadTaunts():
