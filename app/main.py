@@ -43,19 +43,22 @@ def loadConfig():
 		global CONST_FOOD_FURTHER_SHORTER
 		global CONST_FOOD_FURTHER_LONGER
 		global CONST_FOOD_DIST_MODIFIER
-
+        global CONST_HUNGER_WEIGHT_MODIFIER
+        
 		CONST_FOOD_CLOSER_SHORTER = config.getint('FOODWEIGHT', 'CloserAndShorter')
 		CONST_FOOD_CLOSER_LONGER = config.getint('FOODWEIGHT', 'CloserAndLonger')
 		CONST_FOOD_FURTHER_SHORTER = config.getint('FOODWEIGHT', 'FurtherAndShorter')
 		CONST_FOOD_FURTHER_LONGER = config.getint('FOODWEIGHT', 'FurtherAndLonger')
 		CONST_FOOD_DIST_MODIFIER = config.getint('FOODWEIGHT', 'DistanceModifier')
-
+        CONST_HUNGER_WEIGHT_MODIFIER = config.getint('FOODWEIGHT','HungerWeightModifier')
+        
 		debug('Read the following configs: ')
 		debug('CONST_FOOD_CLOSER_SHORTER:  {}'.format(CONST_FOOD_CLOSER_SHORTER))
 		debug('CONST_FOOD_CLOSER_LONGER:   {}'.format(CONST_FOOD_CLOSER_LONGER))
 		debug('CONST_FOOD_FURTHER_SHORTER: {}'.format(CONST_FOOD_FURTHER_SHORTER))
 		debug('CONST_FOOD_FURTHER_LONGER:  {}'.format(CONST_FOOD_FURTHER_LONGER))
-		debug('CONST_FOOD_FURTHER_LONGER:  {}'.format(CONST_FOOD_DIST_MODIFIER))
+		debug('CONST_FOOD_DIST_MODIFIER:   {}'.format(CONST_FOOD_DIST_MODIFIER))
+		debug('CONST_FOOD_FURTHER_LONGER:  {}'.format(CONST_HUNGER_WEIGHT_MODIFIER))
 
 def debug(msg):
     if DEBUG:
@@ -127,12 +130,13 @@ def move():
             debug("Rejecting move "+str(m)+", next gen space fill fails")
             moves_tested.remove(m)
 
-
+    
+    moves = hunger_move(data, moves_tested)
 
     if moves is None or len(moves) is 0:
-        debug("Found no good food moves, using all candidates")
+        debug("Found no good moves, using all candidates")
         moves = candidates
-
+        
     move = random.choice(moves)
 
     debug("Was going "+str(direction(me))+", moving "+str(move))
