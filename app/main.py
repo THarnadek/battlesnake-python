@@ -17,7 +17,7 @@ CONST_FOOD_DIST_MODIFIER = 0
 # use this to taunt people randomly
 #random.choice(taunts)
 
-DEBUG = True
+DEBUG = False
 
 #Loads strings from taunts.txt
 def loadTaunts():
