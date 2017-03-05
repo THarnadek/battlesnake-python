@@ -189,10 +189,30 @@ def hunger_move(data, moves_tested):
 
 # Return our best move for hunting
 def bloodlust_move(data, moves_tested):
-    # Bigger: actively move toward their next head
-    # Can trap? Trap it
+    debug("Looking for a move to kill!")
+    # Consider away from snake, then center
+    me = next(x for x in data['snakes'] if x['id'] == data['you'])
+    others = [x for x in data['snakes'] if not x['id'] == data['you']]
+    # nearest snake (within 5)
+    # smaller than us: distance, plus if they are bigger
+    close_snakes = [x for x in others if dist(me['coords'][0], x['coords'][0]) <= CONST_FEAR_DIST and len(me['coords']) <= len(x['coords'])]
+    if len(close_snakes) is 0:
+        return random.choice(moves_tested)
+    weighted_close_snakes = [[x,len(x['coords'])] for x in others]
+    candidate = weighted_close_snakes[0]
+    for x in weighted_close_snakes:
+        if x[1] < candidate[1]:
+            candidate = x
+    consider = move_toward(me['coords'][0], candidate[0]['coords'][0])
 
-    return random.choice(moves_tested)
+    safe_kill_moves = [ x for x in consider if x in moves_tested ]
+    if len(safe_kill_moves) is 0:
+        debug("No safe killing moves found")
+        return None
+    
+    if not len(safe_kill_moves) is 0:
+        return random.choice(safe_kill_moves)
+    return None
 
 # Return our best move for running
 def fear_move(data, moves_tested):
