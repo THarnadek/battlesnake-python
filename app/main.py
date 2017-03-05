@@ -227,7 +227,7 @@ def fear_move(data, moves_tested):
 # Weight of 10 (0 is full, 10 is starving)
 def hunger_weight(data):
     me = next(x for x in data['snakes'] if x['id'] == data['you'])
-    return (100 - me['health'])/CONST_HUNGER_WEIGHT_MODIFIER
+    return (100 - me['health_points'])/CONST_HUNGER_WEIGHT_MODIFIER
 
 # Weight of 10 (0 is no bloodlust, 10 is pure bloodlust)
 def bloodlust_weight(data):
