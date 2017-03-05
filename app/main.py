@@ -151,9 +151,9 @@ def move():
 
     if fear_weight(data) >= bloodlust_weight(data) and fear_weight(data) >= hunger_weight(data):
         move = fear_move(data, moves_tested)
-    else if bloodlust_weight(data) >= hunger_weight
+    elif bloodlust_weight(data) >= hunger_weight(data):
         move = bloodlust_move(data, moves_tested)
-    else
+    else:
         move = hunger_move(data, moves_tested)
 
     # If we don't find a beneficial move, just pick a non-suicidal one
