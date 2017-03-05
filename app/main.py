@@ -161,7 +161,7 @@ def move():
     # If we don't find a beneficial move, just pick a non-suicidal one
     if move is None:
         debug("Found no good move, using all candidates")
-        move = random.choice(candidates)
+        move = random.choice(moves_tested)
 
     debug("Was going "+str(direction(me))+", moving "+str(move))
 
