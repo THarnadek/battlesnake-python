@@ -59,13 +59,13 @@ def loadConfig():
         CONST_FOOD_FURTHER_LONGER = config.getint('FOODWEIGHT', 'FurtherAndLonger')
         CONST_FOOD_DIST_MODIFIER = config.getint('FOODWEIGHT', 'DistanceModifier')
         CONST_HUNGER_WEIGHT_MODIFIER = config.getint('FOODWEIGHT','HungerWeightModifier')
-        
+
         CONST_AGRESSION = config.getint('FIGHTORFLIGHT', 'Agresssion')
         CONST_FEAR = config.getint('FIGHTORFLIGHT', 'Fear')
         CONST_FEAR_DIST = config.getint('FIGHTORFLIGHT', 'FearDist')
         CONST_BLOODLUST_DIST = config.getint('FIGHTORFLIGHT', 'BloodlustDist')
-        
-        
+
+
         debug('Read the following configs: ')
         debug('CONST_FOOD_CLOSER_SHORTER:    {}'.format(CONST_FOOD_CLOSER_SHORTER))
         debug('CONST_FOOD_CLOSER_LONGER:     {}'.format(CONST_FOOD_CLOSER_LONGER))
@@ -73,12 +73,12 @@ def loadConfig():
         debug('CONST_FOOD_FURTHER_LONGER:    {}'.format(CONST_FOOD_FURTHER_LONGER))
         debug('CONST_FOOD_DIST_MODIFIER:     {}'.format(CONST_FOOD_DIST_MODIFIER))
         debug('CONST_HUNGER_WEIGHT_MODIFIER: {}'.format(CONST_HUNGER_WEIGHT_MODIFIER))
-        
+
         debug('CONST_AGRESSION:      {}'.format(CONST_AGRESSION))
         debug('CONST_FEAR:           {}'.format(CONST_FEAR))
         debug('CONST_FEAR_DIST:      {}'.format(CONST_FEAR_DIST))
         debug('CONST_BLOODLUST_DIST: {}'.format(CONST_BLOODLUST_DIST))
-        
+
 def debug(msg):
     if DEBUG:
         print msg
@@ -155,7 +155,7 @@ def move():
         move = bloodlust_move(data, moves_tested)
     else
         move = hunger_move(data, moves_tested)
-    
+
     # If we don't find a beneficial move, just pick a non-suicidal one
     if move is None:
         debug("Found no good move, using all candidates")
@@ -187,6 +187,9 @@ def hunger_move(data, moves_tested):
 
 # Return our best move for hunting
 def bloodlust_move(data, moves_tested):
+    # Bigger: actively move toward their next head
+    # Can trap? Trap it
+
     return random.choice(moves_tested)
 
 # Return our best move for running
@@ -205,19 +208,7 @@ def fear_move(data, moves_tested):
     for x in weighted_close_snakes:
         if x[1] < candidate[1]:
             candidate = x
-    # Get his direction relative to us
-    x_dist = candidate[0]['coords'][0][0] - me['coords'][0][0]
-    y_dist = candidate[0]['coords'][0][1] - me['coords'][0][1]
-
-    consider = list(directions)
-    if x < 0:
-        consider.remove('left')
-    if x > 0:
-        consider.remove('right')
-    if y < 0:
-        consider.remove('up')
-    if y > 0:
-        consider.remove('down')
+    consider = move_toward(me['coords'][0], candidate[0]['coords'][0])
 
     safe_run_moves = [ x for x in consider if x in moves_tested ]
     if len(safe_run_moves) is 0:
@@ -226,14 +217,10 @@ def fear_move(data, moves_tested):
     x_center = data['width']/2
     y_center = data['height']/2
 
-    center_dist = dist(me['coords'][0], [x_center, y_center])
-
-    for m in safe_run_moves:
-        new_snake = apply_move(me, m)
-        new_center_dist = dist(new_snake, [x_center, y_center])
-        if new_center_dist < center_dist:
-            return m
-    return random.choice(safe_run_moves)
+    safe_center_moves = [ x for x in move_toward(me['coords'][0], [x_center, y_center]) if x in safe_run_moves ]
+    if len(safe_center_moves) is 0:
+        return random.choice(safe_run_moves)
+    return random.choice(safe_center_moves)
 
 # Weight of 10 (0 is full, 10 is starving)
 def hunger_weight(data):
