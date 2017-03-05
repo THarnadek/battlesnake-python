@@ -151,9 +151,9 @@ def move():
             debug("Rejecting move "+str(m)+", next gen space fill fails")
             moves_tested.remove(m)
 
-    if fear_weight(data) >= bloodlust_weight(data) and fear_weight(data) >= hunger_weight(data):
+    if fear_weight(data) >= bloodlust_weight(data) and fear_weight(data) > hunger_weight(data):
         move = fear_move(data, moves_tested)
-    elif bloodlust_weight(data) >= hunger_weight(data):
+    elif bloodlust_weight(data) > hunger_weight(data):
         move = bloodlust_move(data, moves_tested)
     else:
         move = hunger_move(data, moves_tested)
