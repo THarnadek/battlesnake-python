@@ -428,13 +428,20 @@ def safe_moves(data, new_snake=None):
 def safe_moves_collide(n_head, me, others):
     body = me['coords'][1:]
     tail_tip = me['coords'][-1]
+    if me['health_points'] is 100:
+        tail_tip = None
     if n_head in body and not n_head is tail_tip:
             debug("move collides with our body")
             return True
     for snake in others:
-        if n_head in snake['coords'][0:-2]:
-            debug("move collides with other snake body")
-            return True
+        if snake['health_points'] is 100:
+            if n_head in snake['coords'][0:-1]:
+                debug("move collides with other snake body")
+                return True
+        else:
+            if n_head in snake['coords'][0:-2]:
+                debug("move collides with other snake body")
+                return True
     return False
 
 
