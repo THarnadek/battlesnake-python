@@ -62,7 +62,7 @@ def loadConfig():
         CONST_FOOD_DIST_MODIFIER = config.getint('FOODWEIGHT', 'DistanceModifier')
         CONST_HUNGER_WEIGHT_MODIFIER = config.getint('FOODWEIGHT','HungerWeightModifier')
 
-        CONST_AGRESSION = config.getint('FIGHTORFLIGHT', 'Agresssion')
+        CONST_AGRESSION = config.getint('FIGHTORFLIGHT', 'Agression')
         CONST_FEAR = config.getint('FIGHTORFLIGHT', 'Fear')
         CONST_FEAR_DIST = config.getint('FIGHTORFLIGHT', 'FearDist')
         CONST_BLOODLUST_DIST = config.getint('FIGHTORFLIGHT', 'BloodlustDist')
