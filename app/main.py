@@ -202,7 +202,7 @@ def fear_move(data, moves_tested):
     others = [x for x in data['snakes'] if not x['id'] == data['you']]
     # nearest snake (within 5)
     # smaller than us: distance, plus if they are bigger
-    close_snakes = [x for x in others if dist(me['coords'][0], x['coords'][0]) <= CONST_FEAR_DIST and len(me['coords']) < len(x['coords'])]
+    close_snakes = [x for x in others if dist(me['coords'][0], x['coords'][0]) <= CONST_FEAR_DIST and len(me['coords']) <= len(x['coords'])]
     if len(close_snakes) is 0:
         return random.choice(moves_tested)
     weighted_close_snakes = [[x,len(x['coords'])] for x in others]
