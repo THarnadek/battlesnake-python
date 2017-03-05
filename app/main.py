@@ -48,6 +48,10 @@ def loadConfig():
         global CONST_FOOD_FURTHER_LONGER
         global CONST_FOOD_DIST_MODIFIER
         global CONST_HUNGER_WEIGHT_MODIFIER
+        global CONST_AGRESSION
+        global CONST_FEAR
+        global CONST_FEAR_DIST
+        global CONST_BLOODLUST_DIST
 
         CONST_FOOD_CLOSER_SHORTER = config.getint('FOODWEIGHT', 'CloserAndShorter')
         CONST_FOOD_CLOSER_LONGER = config.getint('FOODWEIGHT', 'CloserAndLonger')
@@ -55,15 +59,26 @@ def loadConfig():
         CONST_FOOD_FURTHER_LONGER = config.getint('FOODWEIGHT', 'FurtherAndLonger')
         CONST_FOOD_DIST_MODIFIER = config.getint('FOODWEIGHT', 'DistanceModifier')
         CONST_HUNGER_WEIGHT_MODIFIER = config.getint('FOODWEIGHT','HungerWeightModifier')
-
+        
+        CONST_AGRESSION = config.getint('FIGHTORFLIGHT', 'Agresssion')
+        CONST_FEAR = config.getint('FIGHTORFLIGHT', 'Fear')
+        CONST_FEAR_DIST = config.getint('FIGHTORFLIGHT', 'FearDist')
+        CONST_BLOODLUST_DIST = config.getint('FIGHTORFLIGHT', 'BloodlustDist')
+        
+        
         debug('Read the following configs: ')
-        debug('CONST_FOOD_CLOSER_SHORTER:  {}'.format(CONST_FOOD_CLOSER_SHORTER))
-        debug('CONST_FOOD_CLOSER_LONGER:   {}'.format(CONST_FOOD_CLOSER_LONGER))
-        debug('CONST_FOOD_FURTHER_SHORTER: {}'.format(CONST_FOOD_FURTHER_SHORTER))
-        debug('CONST_FOOD_FURTHER_LONGER:  {}'.format(CONST_FOOD_FURTHER_LONGER))
-        debug('CONST_FOOD_DIST_MODIFIER:   {}'.format(CONST_FOOD_DIST_MODIFIER))
-        debug('CONST_FOOD_FURTHER_LONGER:  {}'.format(CONST_HUNGER_WEIGHT_MODIFIER))
-
+        debug('CONST_FOOD_CLOSER_SHORTER:    {}'.format(CONST_FOOD_CLOSER_SHORTER))
+        debug('CONST_FOOD_CLOSER_LONGER:     {}'.format(CONST_FOOD_CLOSER_LONGER))
+        debug('CONST_FOOD_FURTHER_SHORTER:   {}'.format(CONST_FOOD_FURTHER_SHORTER))
+        debug('CONST_FOOD_FURTHER_LONGER:    {}'.format(CONST_FOOD_FURTHER_LONGER))
+        debug('CONST_FOOD_DIST_MODIFIER:     {}'.format(CONST_FOOD_DIST_MODIFIER))
+        debug('CONST_HUNGER_WEIGHT_MODIFIER: {}'.format(CONST_HUNGER_WEIGHT_MODIFIER))
+        
+        debug('CONST_AGRESSION:      {}'.format(CONST_AGRESSION))
+        debug('CONST_FEAR:           {}'.format(CONST_FEAR))
+        debug('CONST_FEAR_DIST:      {}'.format(CONST_FEAR_DIST))
+        debug('CONST_BLOODLUST_DIST: {}'.format(CONST_BLOODLUST_DIST))
+        
 def debug(msg):
     if DEBUG:
         print msg
@@ -134,9 +149,14 @@ def move():
             debug("Rejecting move "+str(m)+", next gen space fill fails")
             moves_tested.remove(m)
 
-
-    move = hunger_move(data, moves_tested)
-
+    if fear_weight(data) >= bloodlust_weight(data) and fear_weight(data) >= hunger_weight(data):
+        move = fear_move(data, moves_tested)
+    else if bloodlust_weight(data) >= hunger_weight
+        move = bloodlust_move(data, moves_tested)
+    else
+        move = hunger_move(data, moves_tested)
+    
+    # If we don't find a beneficial move, just pick a non-suicidal one
     if move is None:
         debug("Found no good move, using all candidates")
         move = random.choice(candidates)
