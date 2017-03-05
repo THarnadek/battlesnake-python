@@ -210,7 +210,7 @@ def fear_move(data, moves_tested):
     for x in weighted_close_snakes:
         if x[1] < candidate[1]:
             candidate = x
-    consider = move_toward(me['coords'][0], candidate[0]['coords'][0])
+    consider = [ inv_dir(x) for x in move_toward(me['coords'][0], candidate[0]['coords'][0]) ]
 
     safe_run_moves = [ x for x in consider if x in moves_tested ]
     if len(safe_run_moves) is 0:
