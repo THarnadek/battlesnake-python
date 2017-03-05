@@ -209,7 +209,7 @@ def bloodlust_move(data, moves_tested):
     if len(safe_kill_moves) is 0:
         debug("No safe killing moves found")
         return None
-    
+
     if not len(safe_kill_moves) is 0:
         return random.choice(safe_kill_moves)
     return None
@@ -455,11 +455,11 @@ def safe_moves_collide(n_head, me, others):
             return True
     for snake in others:
         if snake['health_points'] is 100:
-            if n_head in snake['coords'][0:-1]:
+            if n_head in snake['coords']:
                 debug("move collides with other snake body")
                 return True
         else:
-            if n_head in snake['coords'][0:-2]:
+            if n_head in snake['coords'][0:-1]:
                 debug("move collides with other snake body")
                 return True
     return False
