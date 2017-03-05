@@ -150,6 +150,7 @@ def move():
 
 # Return our best move for eating
 def hunger_move(data, moves_tested):
+    debug("Looking for a move to eat!")
     me = next(x for x in data['snakes'] if x['id'] == data['you'])
     food = food_list(data)
     if not len(food) is 0:
@@ -161,10 +162,8 @@ def hunger_move(data, moves_tested):
         safe_food_moves = [ x for x in possible_food_moves if x in moves_tested ]
 
     if safe_food_moves is None or len(safe_food_moves) is 0:
-        moves = moves_tested
-    else:
-        moves = safe_food_moves
-    return random.choice(moves)
+        return None
+    return random.choice(safe_food_moves)
 
 # Return our best move for hunting
 def bloodlust_move(data, moves_tested):
@@ -172,7 +171,49 @@ def bloodlust_move(data, moves_tested):
 
 # Return our best move for running
 def fear_move(data, moves_tested):
-    return random.choice(moves_tested)
+    debug("Looking for a move to run away!")
+    # Consider away from snake, then center
+    me = next(x for x in snakes if x['id'] == data['you'])
+    others = [x for x in data['snakes'] if not x['id'] == data['you']]
+    # nearest snake (within 5)
+    # smaller than us: distance, plus if they are bigger
+    close_snakes = [x for x in others if dist(me['coords'][0], x['coords'][0]) <= CONST_FEAR_DIST and len(me['coords']) < len(x['coords'])]
+    if len(close_snakes) is 0:
+        return random.choice(moves_tested)
+    weighted_close_snakes = [[x,len(x['coords'])] for x in others]
+    candidate = weighted_close_snakes[0]
+    for x in weighted_close_snakes:
+        if x[1] < candidate[1]:
+            candidate = x
+    # Get his direction relative to us
+    x_dist = candidate[0]['coords'][0][0] - me['coords'][0][0]
+    y_dist = candidate[0]['coords'][0][1] - me['coords'][0][1]
+
+    consider = list(directions)
+    if x < 0:
+        consider.remove('left')
+    if x > 0:
+        consider.remove('right')
+    if y < 0:
+        consider.remove('up')
+    if y > 0:
+        consider.remove('down')
+
+    safe_run_moves = [ x for x in consider if x in moves_tested ]
+    if len(safe_run_moves) is 0:
+        debug("No safe running moves found")
+        return None
+    x_center = data['width']/2
+    y_center = data['height']/2
+
+    center_dist = dist(me['coords'][0], [x_center, y_center])
+
+    for m in safe_run_moves:
+        new_snake = apply_move(me, m)
+        new_center_dist = dist(new_snake, [x_center, y_center])
+        if new_center_dist < center_dist:
+            return m
+    return random.choice(safe_run_moves)
 
 # Weight of 10 (0 is full, 10 is starving)
 def hunger_weight(data):
