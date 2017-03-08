@@ -5,10 +5,17 @@ import sys
 import ConfigParser
 import copy
 
-# PartyParrot-Snek (aka Spaghetti-Snek)
+# PartyParrot-Snek
+#
+# Snake AI written during BattleSnake 2017 (battlesnake.io)
+#
+# By:
+#         Jon Pavelich (github.com/jonpavelich)
+#        Tyler Harnadek (github.com/THarnadek)
+#
+# Derived from template by sendwithus (github.com/sendwithus)
 
-directions = ['up', 'down', 'left', 'right']
-#placeholder constants
+# Placeholder constants/modifiers
 taunts = ['I\m mute', 'I have nothing to say']
 CONST_FOOD_CLOSER_SHORTER = 5
 CONST_FOOD_CLOSER_LONGER = 10
@@ -21,75 +28,33 @@ CONST_FEAR = 1
 CONST_FEAR_DIST = 5
 CONST_BLOODLUST_DIST = 5
 
-# use this to taunt people randomly
-#random.choice(taunts)
+directions = ['up', 'down', 'left', 'right']
 
-DEBUG = True
+######
+# Main
+######
 
-#Loads strings from taunts.txt
-def loadTaunts():
-	if not os.path.exists('app/taunts.txt'):
-		debug("No taunts file, you should include that")
-	else:
-		global taunts
-		taunts = [line.strip() for line in open('app/taunts.txt', 'r')]
-		debug('Read the following taunts: ')
-		debug(taunts)
-
-#Loads configs from snake.ini file
-def loadConfig():
-    if not os.path.exists('app/snake.ini'):
-        debug("No config file, you should include that")
-        #if there's no config file, defaults just get used
+# Expose WSGI app (so gunicorn can find it)
+application = bottle.default_app()
+if __name__ == '__main__':
+    global DEBUG
+    if 'debug' in sys.argv[1:]:
+        print "Enabled debugging messages"
+        DEBUG = True
     else:
-        config = ConfigParser.ConfigParser()
-        config.read('app/snake.ini')
-        global CONST_FOOD_CLOSER_SHORTER
-        global CONST_FOOD_CLOSER_LONGER
-        global CONST_FOOD_FURTHER_SHORTER
-        global CONST_FOOD_FURTHER_LONGER
-        global CONST_FOOD_DIST_MODIFIER
-        global CONST_HUNGER_WEIGHT_MODIFIER
-        global CONST_AGRESSION
-        global CONST_FEAR
-        global CONST_FEAR_DIST
-        global CONST_BLOODLUST_DIST
+        DEBUG = False
+    bottle.run(application, host=os.getenv('IP', '0.0.0.0'), port=os.getenv('PORT', '8080'))
 
-        CONST_FOOD_CLOSER_SHORTER = config.getint('FOODWEIGHT', 'CloserAndShorter')
-        CONST_FOOD_CLOSER_LONGER = config.getint('FOODWEIGHT', 'CloserAndLonger')
-        CONST_FOOD_FURTHER_SHORTER = config.getint('FOODWEIGHT', 'FurtherAndShorter')
-        CONST_FOOD_FURTHER_LONGER = config.getint('FOODWEIGHT', 'FurtherAndLonger')
-        CONST_FOOD_DIST_MODIFIER = config.getint('FOODWEIGHT', 'DistanceModifier')
-        CONST_HUNGER_WEIGHT_MODIFIER = config.getint('FOODWEIGHT','HungerWeightModifier')
+###############
+# HTTP Requests
+###############
 
-        CONST_AGRESSION = config.getint('FIGHTORFLIGHT', 'Agression')
-        CONST_FEAR = config.getint('FIGHTORFLIGHT', 'Fear')
-        CONST_FEAR_DIST = config.getint('FIGHTORFLIGHT', 'FearDist')
-        CONST_BLOODLUST_DIST = config.getint('FIGHTORFLIGHT', 'BloodlustDist')
-
-
-        debug('Read the following configs: ')
-        debug('CONST_FOOD_CLOSER_SHORTER:    {}'.format(CONST_FOOD_CLOSER_SHORTER))
-        debug('CONST_FOOD_CLOSER_LONGER:     {}'.format(CONST_FOOD_CLOSER_LONGER))
-        debug('CONST_FOOD_FURTHER_SHORTER:   {}'.format(CONST_FOOD_FURTHER_SHORTER))
-        debug('CONST_FOOD_FURTHER_LONGER:    {}'.format(CONST_FOOD_FURTHER_LONGER))
-        debug('CONST_FOOD_DIST_MODIFIER:     {}'.format(CONST_FOOD_DIST_MODIFIER))
-        debug('CONST_HUNGER_WEIGHT_MODIFIER: {}'.format(CONST_HUNGER_WEIGHT_MODIFIER))
-
-        debug('CONST_AGRESSION:      {}'.format(CONST_AGRESSION))
-        debug('CONST_FEAR:           {}'.format(CONST_FEAR))
-        debug('CONST_FEAR_DIST:      {}'.format(CONST_FEAR_DIST))
-        debug('CONST_BLOODLUST_DIST: {}'.format(CONST_BLOODLUST_DIST))
-
-def debug(msg):
-    if DEBUG:
-        print msg
-
+# Static requests
 @bottle.route('/static/<path:path>')
 def static(path):
     return bottle.static_file(path, root='static/')
 
-
+# Game start request (called on new game start)
 @bottle.post('/start')
 def start():
     data = bottle.request.json
@@ -97,10 +62,6 @@ def start():
     board_width = data['width']
     board_height = data['height']
 
-#    head_url = '%s://%s/static/head.png' % (
-#        bottle.request.urlparts.scheme,
-#        bottle.request.urlparts.netloc
-#    )
     head_url = 'http://cultofthepartyparrot.com/parrots/hd/parrot.gif'
 
     loadConfig()
@@ -113,6 +74,7 @@ def start():
         'name': 'PartyParrot-Snek'
     }
 
+# Game move request (called each time it is our move)
 @bottle.post('/move')
 def move():
     data = bottle.request.json
@@ -169,6 +131,244 @@ def move():
         'move': move,
         'taunt': 'I have no idea where I\'m going!'
     }
+
+################
+# Config Imports
+################
+
+# Loads strings from taunts.txt
+def loadTaunts():
+    if not os.path.exists('app/taunts.txt'):
+        debug("No taunts file, you should include that")
+    else:
+        global taunts
+        taunts = [line.strip() for line in open('app/taunts.txt', 'r')]
+        debug('Read the following taunts: ')
+        debug(taunts)
+
+# Loads configs from snake.ini file
+def loadConfig():
+    if not os.path.exists('app/snake.ini'):
+        debug("No config file, you should include that")
+        # if there's no config file, defaults are used
+    else:
+        config = ConfigParser.ConfigParser()
+        config.read('app/snake.ini')
+        global CONST_FOOD_CLOSER_SHORTER
+        global CONST_FOOD_CLOSER_LONGER
+        global CONST_FOOD_FURTHER_SHORTER
+        global CONST_FOOD_FURTHER_LONGER
+        global CONST_FOOD_DIST_MODIFIER
+        global CONST_HUNGER_WEIGHT_MODIFIER
+        global CONST_AGRESSION
+        global CONST_FEAR
+        global CONST_FEAR_DIST
+        global CONST_BLOODLUST_DIST
+
+        CONST_FOOD_CLOSER_SHORTER = config.getint('FOODWEIGHT', 'CloserAndShorter')
+        CONST_FOOD_CLOSER_LONGER = config.getint('FOODWEIGHT', 'CloserAndLonger')
+        CONST_FOOD_FURTHER_SHORTER = config.getint('FOODWEIGHT', 'FurtherAndShorter')
+        CONST_FOOD_FURTHER_LONGER = config.getint('FOODWEIGHT', 'FurtherAndLonger')
+        CONST_FOOD_DIST_MODIFIER = config.getint('FOODWEIGHT', 'DistanceModifier')
+        CONST_HUNGER_WEIGHT_MODIFIER = config.getint('FOODWEIGHT','HungerWeightModifier')
+
+        CONST_AGRESSION = config.getint('FIGHTORFLIGHT', 'Agression')
+        CONST_FEAR = config.getint('FIGHTORFLIGHT', 'Fear')
+        CONST_FEAR_DIST = config.getint('FIGHTORFLIGHT', 'FearDist')
+        CONST_BLOODLUST_DIST = config.getint('FIGHTORFLIGHT', 'BloodlustDist')
+
+
+        debug('Read the following configs: ')
+        debug('CONST_FOOD_CLOSER_SHORTER:    {}'.format(CONST_FOOD_CLOSER_SHORTER))
+        debug('CONST_FOOD_CLOSER_LONGER:     {}'.format(CONST_FOOD_CLOSER_LONGER))
+        debug('CONST_FOOD_FURTHER_SHORTER:   {}'.format(CONST_FOOD_FURTHER_SHORTER))
+        debug('CONST_FOOD_FURTHER_LONGER:    {}'.format(CONST_FOOD_FURTHER_LONGER))
+        debug('CONST_FOOD_DIST_MODIFIER:     {}'.format(CONST_FOOD_DIST_MODIFIER))
+        debug('CONST_HUNGER_WEIGHT_MODIFIER: {}'.format(CONST_HUNGER_WEIGHT_MODIFIER))
+
+        debug('CONST_AGRESSION:      {}'.format(CONST_AGRESSION))
+        debug('CONST_FEAR:           {}'.format(CONST_FEAR))
+        debug('CONST_FEAR_DIST:      {}'.format(CONST_FEAR_DIST))
+        debug('CONST_BLOODLUST_DIST: {}'.format(CONST_BLOODLUST_DIST))
+
+############
+# Safe Moves
+############
+
+# Find moves which are safe (i.e. do not kill us immediately)
+def safe_moves(data, new_snake=None):
+    width = data['width']
+    height = data['height']
+    snakes = data['snakes']
+    me = next(x for x in snakes if x['id'] == data['you'])
+    if not new_snake is None:
+        debug("Using new_snake for collision check")
+        me = new_snake
+    others = [x for x in snakes if not x['id'] == data['you']]
+    head = me['coords'][0]
+
+    moves = list(directions)
+
+    n_head = list(head)
+    n_head[1] -= 1
+    if n_head[1] < 0:
+        debug("up collides with wall")
+        moves.remove('up')
+    elif safe_moves_collide(n_head, me, others):
+        debug("up collides with snake")
+        moves.remove('up')
+
+    n_head = list(head)
+    n_head[1] += 1
+    if n_head[1] >= height:
+        debug("down collides with wall")
+        moves.remove('down')
+    elif safe_moves_collide(n_head, me, others):
+        debug("down collides with snake")
+        moves.remove('down')
+
+    n_head = list(head)
+    n_head[0] -= 1
+    if n_head[0] < 0:
+        debug("left collides with wall")
+        moves.remove('left')
+    elif safe_moves_collide(n_head, me, others):
+        debug("left collides with snake")
+        moves.remove('left')
+
+    n_head = list(head)
+    n_head[0] += 1
+    if n_head[0] >= width:
+        debug("right collides with wall")
+        moves.remove('right')
+    elif safe_moves_collide(n_head, me, others):
+        debug("right collides with snake")
+        moves.remove('right')
+
+    return moves
+
+# Helper function for safe_moves()
+# Determines if a move will collide with a snake
+def safe_moves_collide(n_head, me, others):
+    body = me['coords'][1:]
+    tail_tip = me['coords'][-1]
+    if me['health_points'] is 100:
+        tail_tip = None
+    if n_head in body and not n_head is tail_tip:
+            debug("move collides with our body")
+            return True
+    for snake in others:
+        if snake['health_points'] is 100:
+            if n_head in snake['coords']:
+                debug("move collides with other snake body")
+                return True
+        else:
+            if n_head in snake['coords'][0:-1]:
+                debug("move collides with other snake body")
+                return True
+    return False
+
+# Use flood filling to determine the size of a region
+def space_size(data, space):
+    edges = []
+    for x in range(-1,data['width']):
+        edges.append([x,-2])
+        edges.append([x,data['height']])
+    for x in range(0,data['height']-1):
+        edges.append([-1,x])
+        edges.append([data['width'],x])
+    for x in data['snakes']:
+        for y in x['coords']:
+            edges.append(y)
+
+    me = next(x for x in data['snakes'] if x['id'] == data['you'])
+    our_len = len(me['coords']) + 2
+    count = 0
+    explore = [space]
+    edges.append(space)
+    count += 1
+    while not len(explore) is 0 and len(explore) < our_len:
+        new_explore = []
+        for x in explore:
+            if not [x[0]+1, x[1]] in edges:
+                new_explore.append([x[0]+1, x[1]])
+                edges.append([x[0]+1, x[1]])
+                count += 1
+            if not [x[0]-1, x[1]] in edges:
+                new_explore.append([x[0]-1, x[1]])
+                edges.append([x[0]-1, x[1]])
+                count += 1
+            if not [x[0], x[1]+1] in edges:
+                new_explore.append([x[0], x[1]+1])
+                edges.append([x[0], x[1]+1])
+                count += 1
+            if not [x[0], x[1]-1] in edges:
+                new_explore.append([x[0], x[1]-1])
+                edges.append([x[0], x[1]-1])
+                count += 1
+        explore = new_explore
+    debug("Found "+str(count)+" tiles free after flood fill")
+    return count
+
+########################
+# Determine mode weights
+########################
+
+# Weight of 10 (0 is full, 10 is starving)
+def hunger_weight(data):
+    me = next(x for x in data['snakes'] if x['id'] == data['you'])
+    return (100 - me['health_points'])/CONST_HUNGER_WEIGHT_MODIFIER
+
+# Weight of 10 (0 is no bloodlust, 10 is pure bloodlust)
+def bloodlust_weight(data):
+    me = next(x for x in data['snakes'] if x['id'] == data['you'])
+    others = [x for x in data['snakes'] if not x['id'] == data['you']]
+    # nearest snake (within 5)
+    # smaller than us: distance, plus they are smaller
+    close_snakes = [x for x in others if dist(me['coords'][0], x['coords'][0]) <= CONST_BLOODLUST_DIST and len(me['coords']) > len(x['coords'])]
+    if len(close_snakes) is 0:
+        return 0
+    weighted_close_snakes = [[x,len(x['coords'])] for x in others]
+    candidate = weighted_close_snakes[0]
+    for x in weighted_close_snakes:
+        if x[1] < candidate[1]:
+            candidate = x
+    return (10 - candidate[1])*CONST_AGRESSION
+
+# Weight of 10 (0 is fearless, 10 us terrified)
+def fear_weight(data):
+    me = next(x for x in data['snakes'] if x['id'] == data['you'])
+    others = [x for x in data['snakes'] if not x['id'] == data['you']]
+    # nearest snake (within 5)
+    # smaller than us: distance, plus if they are bigger
+    close_snakes = [x for x in others if dist(me['coords'][0], x['coords'][0]) <= CONST_FEAR_DIST and len(me['coords']) < len(x['coords'])]
+    if len(close_snakes) is 0:
+        return 0
+    weighted_close_snakes = [[x,len(x['coords'])] for x in others]
+    candidate = weighted_close_snakes[0]
+    for x in weighted_close_snakes:
+        if x[1] < candidate[1]:
+            candidate = x
+    return (10 - candidate[1])*CONST_FEAR
+
+################
+# Determine move
+################
+
+# Returns a list of possible (maybe unsafe) moves which will advance point A to B
+def move_toward(A, B):
+    x = A[0] - B[0]
+    y = A[1] - B[1]
+    moves = []
+    if x < 0:
+        moves.append('right')
+    if x > 0:
+        moves.append('left')
+    if y < 0:
+        moves.append('down')
+    if y > 0:
+        moves.append('up')
+    return moves
 
 # Return our best move for eating
 def hunger_move(data, moves_tested):
@@ -244,46 +444,8 @@ def fear_move(data, moves_tested):
         return random.choice(safe_run_moves)
     return random.choice(safe_center_moves)
 
-# Weight of 10 (0 is full, 10 is starving)
-def hunger_weight(data):
-    me = next(x for x in data['snakes'] if x['id'] == data['you'])
-    return (100 - me['health_points'])/CONST_HUNGER_WEIGHT_MODIFIER
-
-# Weight of 10 (0 is no bloodlust, 10 is pure bloodlust)
-def bloodlust_weight(data):
-    me = next(x for x in data['snakes'] if x['id'] == data['you'])
-    others = [x for x in data['snakes'] if not x['id'] == data['you']]
-    # nearest snake (within 5)
-    # smaller than us: distance, plus they are smaller
-    close_snakes = [x for x in others if dist(me['coords'][0], x['coords'][0]) <= CONST_BLOODLUST_DIST and len(me['coords']) > len(x['coords'])]
-    if len(close_snakes) is 0:
-        return 0
-    weighted_close_snakes = [[x,len(x['coords'])] for x in others]
-    candidate = weighted_close_snakes[0]
-    for x in weighted_close_snakes:
-        if x[1] < candidate[1]:
-            candidate = x
-    return (10 - candidate[1])*CONST_AGRESSION
-
-# Weight of 10 (0 is fearless, 10 us terrified)
-def fear_weight(data):
-    me = next(x for x in data['snakes'] if x['id'] == data['you'])
-    others = [x for x in data['snakes'] if not x['id'] == data['you']]
-    # nearest snake (within 5)
-    # smaller than us: distance, plus if they are bigger
-    close_snakes = [x for x in others if dist(me['coords'][0], x['coords'][0]) <= CONST_FEAR_DIST and len(me['coords']) < len(x['coords'])]
-    if len(close_snakes) is 0:
-        return 0
-    weighted_close_snakes = [[x,len(x['coords'])] for x in others]
-    candidate = weighted_close_snakes[0]
-    for x in weighted_close_snakes:
-        if x[1] < candidate[1]:
-            candidate = x
-    return (10 - candidate[1])*CONST_FEAR
-
 # Prioritize food by distance and other snakes
-# Returns weighted list of food (more positive weights are better,
-# more negative weights are more dangerous/worse)
+# Returns weighted list of food (more positive weights are better, more negative weights are more dangerous/worse)
 def food_list(data):
     me = next(x for x in data['snakes'] if x['id'] == data['you'])
     others = [x for x in data['snakes'] if not x['id'] == data['you']]
@@ -307,163 +469,14 @@ def food_list(data):
                     x[1] -= CONST_FOOD_CLOSER_LONGER # We are longer
     return food
 
-# Returns the snake with a move applied
-def apply_move(snake, move):
-    new_head = list(snake['coords'][0])
-    if move is 'up':
-        new_head[1] -= 1
-    elif move is 'down':
-        new_head[1] += 1
-    elif move is 'left':
-        new_head[0] -= 1
-    elif move is 'right':
-        new_head[0] += 1
-    result = copy.deepcopy(snake)
-    result['coords'] = [new_head]
-    for x in snake['coords'][:-1]:
-        result['coords'].append(x)
-    return result
+##################
+# Helper functions
+##################
 
-# Returns a list of possible (maybe unsafe) moves which will advance point A to B
-def move_toward(A, B):
-    x = A[0] - B[0]
-    y = A[1] - B[1]
-    moves = []
-    if x < 0:
-        moves.append('right')
-    if x > 0:
-        moves.append('left')
-    if y < 0:
-        moves.append('down')
-    if y > 0:
-        moves.append('up')
-    return moves
-
-# Returns the number of moves between two points
-def dist(point1, point2):
-    x = point1[0] - point2[0]
-    y = point1[1] - point2[1]
-    if x < 0:
-        x *= -1
-    if y < 0:
-        y *= -1
-    return x+y
-
-# Use flood filling to determine the size of a region
-def space_size(data, space):
-    edges = []
-    for x in range(-1,data['width']):
-        edges.append([x,-2])
-        edges.append([x,data['height']])
-    for x in range(0,data['height']-1):
-        edges.append([-1,x])
-        edges.append([data['width'],x])
-    for x in data['snakes']:
-        for y in x['coords']:
-            edges.append(y)
-
-    me = next(x for x in data['snakes'] if x['id'] == data['you'])
-    our_len = len(me['coords']) + 2
-    count = 0
-    explore = [space]
-    edges.append(space)
-    count += 1
-    while not len(explore) is 0 and len(explore) < our_len:
-        new_explore = []
-        for x in explore:
-            if not [x[0]+1, x[1]] in edges:
-                new_explore.append([x[0]+1, x[1]])
-                edges.append([x[0]+1, x[1]])
-                count += 1
-            if not [x[0]-1, x[1]] in edges:
-                new_explore.append([x[0]-1, x[1]])
-                edges.append([x[0]-1, x[1]])
-                count += 1
-            if not [x[0], x[1]+1] in edges:
-                new_explore.append([x[0], x[1]+1])
-                edges.append([x[0], x[1]+1])
-                count += 1
-            if not [x[0], x[1]-1] in edges:
-                new_explore.append([x[0], x[1]-1])
-                edges.append([x[0], x[1]-1])
-                count += 1
-        explore = new_explore
-    debug("Found "+str(count)+" tiles free after flood fill")
-    return count
-
-
-
-# Find moves which are safe (i.e. do not kill us immediately)
-def safe_moves(data, new_snake=None):
-    width = data['width']
-    height = data['height']
-    snakes = data['snakes']
-    me = next(x for x in snakes if x['id'] == data['you'])
-    if not new_snake is None:
-        debug("Using new_snake for collision check")
-        me = new_snake
-    others = [x for x in snakes if not x['id'] == data['you']]
-    head = me['coords'][0]
-
-    moves = ['up', 'down', 'left', 'right']
-
-    n_head = list(head)
-    n_head[1] -= 1
-    if n_head[1] < 0:
-        debug("up collides with wall")
-        moves.remove('up')
-    elif safe_moves_collide(n_head, me, others):
-        debug("up collides with snake")
-        moves.remove('up')
-
-    n_head = list(head)
-    n_head[1] += 1
-    if n_head[1] >= height:
-        debug("down collides with wall")
-        moves.remove('down')
-    elif safe_moves_collide(n_head, me, others):
-        debug("down collides with snake")
-        moves.remove('down')
-
-    n_head = list(head)
-    n_head[0] -= 1
-    if n_head[0] < 0:
-        debug("left collides with wall")
-        moves.remove('left')
-    elif safe_moves_collide(n_head, me, others):
-        debug("left collides with snake")
-        moves.remove('left')
-
-    n_head = list(head)
-    n_head[0] += 1
-    if n_head[0] >= width:
-        debug("right collides with wall")
-        moves.remove('right')
-    elif safe_moves_collide(n_head, me, others):
-        debug("right collides with snake")
-        moves.remove('right')
-
-    return moves
-
-def safe_moves_collide(n_head, me, others):
-    body = me['coords'][1:]
-    tail_tip = me['coords'][-1]
-    if me['health_points'] is 100:
-        tail_tip = None
-    if n_head in body and not n_head is tail_tip:
-            debug("move collides with our body")
-            return True
-    for snake in others:
-        if snake['health_points'] is 100:
-            if n_head in snake['coords']:
-                debug("move collides with other snake body")
-                return True
-        else:
-            if n_head in snake['coords'][0:-1]:
-                debug("move collides with other snake body")
-                return True
-    return False
-
+# Debugging messages
+def debug(msg):
+    if DEBUG:
+        print msg
 
 # Determine the direction a snake is travelling
 def direction(snake):
@@ -493,10 +506,29 @@ def inv_dir(direction):
     if direction is 'right':
         return 'left'
 
-# Expose WSGI app (so gunicorn can find it)
-application = bottle.default_app()
-if __name__ == '__main__':
-    if 'debug' in sys.argv[1:]:
-        print "Enabled debugging messages"
-        DEBUG = True
-    bottle.run(application, host=os.getenv('IP', '0.0.0.0'), port=os.getenv('PORT', '8080'))
+# Returns the number of moves between two points
+def dist(point1, point2):
+    x = point1[0] - point2[0]
+    y = point1[1] - point2[1]
+    if x < 0:
+        x *= -1
+    if y < 0:
+        y *= -1
+    return x+y
+
+# Returns the snake with a move applied
+def apply_move(snake, move):
+    new_head = list(snake['coords'][0])
+    if move is 'up':
+        new_head[1] -= 1
+    elif move is 'down':
+        new_head[1] += 1
+    elif move is 'left':
+        new_head[0] -= 1
+    elif move is 'right':
+        new_head[0] += 1
+    result = copy.deepcopy(snake)
+    result['coords'] = [new_head]
+    for x in snake['coords'][:-1]:
+        result['coords'].append(x)
+    return result
